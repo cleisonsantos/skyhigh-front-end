@@ -1,26 +1,40 @@
-import { Fragment, useContext, useEffect } from 'react'
-import Head from 'next/head'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
-import { parseCookies } from 'nookies'
-import { AuthContext } from '../contexts/AuthContext'
-import { api } from '../services/api'
-import { GetServerSideProps } from 'next'
-import { getAPIClient } from '../services/axios'
+import { Fragment, useContext, useEffect } from "react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { Disclosure, Menu, Transition } from "@headlessui/react";
+import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
+import { parseCookies } from "nookies";
+import { AuthContext } from "../contexts/AuthContext";
+import { api } from "../services/api";
+import { GetServerSideProps } from "next";
+import { getAPIClient } from "../services/axios";
 
-const navigation = ['Dashboard', 'Team', 'Projects', 'Calendar', 'Reports']
-const profile = ['Your Profile', 'Settings']
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    current: true,
+  },
+  {
+    name: "Incidentes",
+    href: "/incidentes",
+    current: false,
+  },
+];
+
+const profile = ["Your Profile", "Settings"];
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
 export default function Dashboard() {
-  const { user } = useContext(AuthContext)
+  const router = useRouter();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     // api.get('/users');
-  }, [])
+  }, []);
 
   return (
     <div>
@@ -45,19 +59,22 @@ export default function Dashboard() {
                     <div className="ml-10 flex items-baseline space-x-4">
                       {navigation.map((item, itemIdx) =>
                         itemIdx === 0 ? (
-                          <Fragment key={item}>
+                          <Fragment key={item.name}>
                             {/* Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" */}
-                            <a href="#" className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium">
-                              {item}
+                            <a
+                              onClick={() => router.push(`${item.href}`)}
+                              className="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium"
+                            >
+                              {item.name}
                             </a>
                           </Fragment>
                         ) : (
                           <a
-                            key={item}
-                            href="#"
+                            key={item.name}
+                            onClick={() => router.push(`${item.href}`)}
                             className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                           >
-                            {item}
+                            {item.name}
                           </a>
                         )
                       )}
@@ -105,8 +122,8 @@ export default function Dashboard() {
                                     <a
                                       href="#"
                                       className={classNames(
-                                        active ? 'bg-gray-100' : '',
-                                        'block px-4 py-2 text-sm text-gray-700'
+                                        active ? "bg-gray-100" : "",
+                                        "block px-4 py-2 text-sm text-gray-700"
                                       )}
                                     >
                                       {item}
@@ -117,7 +134,7 @@ export default function Dashboard() {
                               <Menu.Item>
                                 <a
                                   href="#"
-                                  className='block px-4 py-2 text-sm text-gray-700'
+                                  className="block px-4 py-2 text-sm text-gray-700"
                                 >
                                   Sign out
                                 </a>
@@ -147,15 +164,18 @@ export default function Dashboard() {
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 {navigation.map((item, itemIdx) =>
                   itemIdx === 0 ? (
-                    <Fragment key={item}>
+                    <Fragment key={item.name}>
                       {/* Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" */}
-                      <a href="#" className="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium">
+                      <a
+                        href="#"
+                        className="bg-gray-900 text-white block px-3 py-2 rounded-md text-base font-medium"
+                      >
                         {item}
                       </a>
                     </Fragment>
                   ) : (
                     <a
-                      key={item}
+                      key={item.name}
                       href="#"
                       className="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
                     >
@@ -174,8 +194,12 @@ export default function Dashboard() {
                     />
                   </div>
                   <div className="ml-3">
-                    <div className="text-base font-medium leading-none text-white">Diego Fernandes</div>
-                    <div className="text-sm font-medium leading-none text-gray-400">diego@rocketseat.com.br</div>
+                    <div className="text-base font-medium leading-none text-white">
+                      {user?.name}
+                    </div>
+                    <div className="text-sm font-medium leading-none text-gray-400">
+                      {user?.email}
+                    </div>
                   </div>
                   <button className="ml-auto bg-gray-800 flex-shrink-0 p-1 rounded-full text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                     <span className="sr-only">View notifications</span>
@@ -220,25 +244,25 @@ export default function Dashboard() {
         </div>
       </main>
     </div>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const apiClient = getAPIClient(ctx);
-  const { ['nextauth.token']: token } = parseCookies(ctx)
+  const { ["nextauth.token"]: token } = parseCookies(ctx);
 
   if (!token) {
     return {
       redirect: {
-        destination: '/',
+        destination: "/",
         permanent: false,
-      }
-    }
+      },
+    };
   }
 
-  await apiClient.get('/users')
+  await apiClient.get("/users");
 
   return {
-    props: {}
-  }
-}
+    props: {},
+  };
+};
